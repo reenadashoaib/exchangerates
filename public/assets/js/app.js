@@ -104,18 +104,24 @@
     select.value = value;
   }
 
+  // Lays the number out as split-flap tiles. Only tiles whose character changed flip.
   function flapText(node, text) {
-    if (node.getAttribute("data-value") === text) return;
+    var prev = node.getAttribute("data-value") || "";
+    if (prev === text) return;
     node.setAttribute("data-value", text);
-    node.textContent = "";
     var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) { node.textContent = text; return; }
+    var offset = text.length - prev.length; // align from the right, like a real board
+    node.textContent = "";
     Array.prototype.forEach.call(text, function (ch, i) {
-      var s = document.createElement("span");
-      s.className = "flap";
-      s.style.animationDelay = (i * 22) + "ms";
-      s.textContent = ch;
-      node.appendChild(s);
+      var t = document.createElement("span");
+      t.className = "tile" + (/[.,]/.test(ch) ? " tile--narrow" : "");
+      t.setAttribute("aria-hidden", "true");
+      t.textContent = ch;
+      if (!reduce && prev.charAt(i - offset) !== ch) {
+        t.classList.add("flip");
+        t.style.animationDelay = ((text.length - i) * 28) + "ms";
+      }
+      node.appendChild(t);
     });
   }
 
@@ -138,8 +144,9 @@
       var b = document.createElement("button");
       b.type = "button";
       b.title = "Convert " + state.from + " to " + currencyName(c);
-      b.innerHTML = '<span class="code"></span><span class="val"></span>';
+      b.innerHTML = '<span class="code"></span><span class="nm"></span><span class="val"></span>';
       b.querySelector(".code").textContent = c;
+      b.querySelector(".nm").textContent = currencyName(c);
       b.querySelector(".val").textContent = fmtRate(cross(state.from, c));
       b.addEventListener("click", function () { setPair(state.from, c); });
       li.appendChild(b);
@@ -189,8 +196,8 @@
       var td = tr.children;
       td[0].textContent = c;
       td[1].textContent = currencyName(c);
-      td[2].textContent = fmtRate(r) + " " + c;
-      td[3].textContent = fmtRate(1 / r) + " " + base;
+      td[2].textContent = fmtRate(r);
+      td[3].textContent = fmtRate(1 / r);
       var b = document.createElement("button");
       b.type = "button";
       b.className = "linklike";
@@ -219,6 +226,7 @@
   function loadHistory() {
     var token = ++historyToken;
     var box = $("chart");
+    box.classList.remove("is-loading");
     $("chart-title").textContent = state.from + " to " + state.to + " over the last " + rangeLabel(state.range);
 
     if (state.from === state.to) return chartMessage("Pick two different currencies to see a chart.");
@@ -231,6 +239,10 @@
     var start = new Date(end.getTime() - state.range * 86400000);
     var url = HISTORY_URL + isoDate(start) + ".." + "?base=" + state.from + "&symbols=" + state.to;
     box.setAttribute("aria-busy", "true");
+    if (!lastSeries) {
+      box.classList.add("is-loading");
+      box.innerHTML = '<p class="chart__msg">Loading the chart…</p>';
+    }
 
     fetch(url)
       .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
@@ -247,7 +259,7 @@
         if (token !== historyToken) return;
         chartMessage("The chart couldn't load. Check your connection, then pick a range to try again.");
       })
-      .then(function () { box.removeAttribute("aria-busy"); });
+      .then(function () { box.removeAttribute("aria-busy"); box.classList.remove("is-loading"); });
   }
 
   function rangeLabel(days) {
@@ -281,7 +293,7 @@
     var stroke = rising ? "var(--up)" : "var(--down)";
 
     box.innerHTML =
-      '<svg role="img" viewBox="0 0 ' + W + " " + H + '" width="' + W + '" height="' + H + '">' +
+      '<svg role="img" tabindex="0" aria-describedby="chart-help" viewBox="0 0 ' + W + " " + H + '" width="' + W + '" height="' + H + '">' +
       "<title>" + state.from + " to " + state.to + " from " + first.date + " to " + last.date + "</title>" +
       '<path d="' + area + '" fill="' + stroke + '" opacity="0.10"/>' +
       '<path d="' + line + '" fill="none" stroke="' + stroke + '" stroke-width="2" stroke-linejoin="round"/>' +
@@ -298,11 +310,10 @@
 
     var svg = box.querySelector("svg");
     var cl = svg.querySelector("#cross"), dot = svg.querySelector("#dot"), tip = svg.querySelector("#tip");
-    svg.addEventListener("pointermove", function (e) {
-      var rect = svg.getBoundingClientRect();
-      var px = (e.clientX - rect.left) * (W / rect.width);
-      var i = Math.round(((px - padL) / (W - padL - padR)) * (series.length - 1));
+    var current = series.length - 1;
+    function show(i) {
       i = Math.max(0, Math.min(series.length - 1, i));
+      current = i;
       var cx = x(i), cy = y(series[i].value);
       cl.setAttribute("x1", cx); cl.setAttribute("x2", cx);
       dot.setAttribute("cx", cx); dot.setAttribute("cy", cy);
@@ -312,6 +323,22 @@
       tip.setAttribute("text-anchor", anchorEnd ? "end" : "start");
       tip.setAttribute("y", 14);
       [cl, dot, tip].forEach(function (n) { n.setAttribute("visibility", "visible"); });
+      $("chart-readout").textContent = niceDate(series[i].date) + ": 1 " + state.from + " = " + fmtRate(series[i].value) + " " + state.to;
+    }
+    svg.addEventListener("pointermove", function (e) {
+      var rect = svg.getBoundingClientRect();
+      var px = (e.clientX - rect.left) * (W / rect.width);
+      show(Math.round(((px - padL) / (W - padL - padR)) * (series.length - 1)));
+    });
+    svg.addEventListener("focus", function () { show(current); });
+    svg.addEventListener("keydown", function (e) {
+      var step = { ArrowLeft: -1, ArrowRight: 1, Home: -Infinity, End: Infinity }[e.key];
+      if (step === undefined) return;
+      e.preventDefault();
+      show(isFinite(step) ? current + step : (step < 0 ? 0 : series.length - 1));
+    });
+    svg.addEventListener("blur", function () {
+      [cl, dot, tip].forEach(function (n) { n.setAttribute("visibility", "hidden"); });
     });
     svg.addEventListener("pointerleave", function () {
       [cl, dot, tip].forEach(function (n) { n.setAttribute("visibility", "hidden"); });
@@ -323,7 +350,7 @@
     $("stat-high").textContent = fmtRate(max);
     $("stat-low").textContent = fmtRate(min);
     var ch = $("stat-change");
-    ch.textContent = (change >= 0 ? "+" : "") + change.toFixed(2) + "%";
+    ch.textContent = (change >= 0 ? "Up " : "Down ") + Math.abs(change).toFixed(2) + "%";
     ch.className = change >= 0 ? "up" : "down";
     $("chart-stats").hidden = false;
   }

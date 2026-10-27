@@ -35,8 +35,8 @@
 
   function placeholder(size, what) {
     return el("a", { class: "ad-placeholder", href: cfg.advertiseUrl || "/advertise.html" }, [
-      el("strong", { text: "Your ad here" }),
-      el("span", { text: (what ? what + " · " : "") + size }),
+      el("strong", { text: what ? "Your " + what + " here" : "Your ad here" }),
+      el("span", { class: "size", text: size }),
       el("span", { text: "See prices and availability" })
     ]);
   }
@@ -112,7 +112,7 @@
         ? el("a", { href: v.clickUrl, target: "_blank", rel: "sponsored noopener" }, [video])
         : video;
     } else {
-      media = placeholder("Video, 16:9", "Corner video");
+      media = placeholder("16:9 video, plays muted", "video ad");
     }
 
     var close = el("button", { type: "button", class: "video-ad__close", "aria-label": "Close video ad" });
@@ -154,7 +154,7 @@
     var close = el("button", { type: "button", class: "interstitial__close" });
     close.innerHTML = 'Close ad <svg width="16" height="16" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="2"/></svg>';
 
-    var content = hasAd ? directAd(p) : placeholder("Full screen, 640×480", "Popup");
+    var content = hasAd ? directAd(p) : placeholder("Full-screen popup, 640×480", "ad");
     var panel = el("div", {
       class: "interstitial__panel",
       role: "dialog",

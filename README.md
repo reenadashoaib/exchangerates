@@ -19,11 +19,23 @@ public/
   robots.txt, sitemap.xml (replace example.com with your domain)
   _headers                Cloudflare caching and security headers
   assets/css/site.css
+  assets/fonts/           Big Shoulders and Instrument Sans, self-hosted (SIL Open Font License)
   assets/js/ads-config.js the only file you edit to turn ads on
   assets/js/ads.js        renders the ad slots, corner video and popup
   assets/js/app.js        converter, table and chart
 wrangler.jsonc            Cloudflare Workers config
 ```
+
+## Design
+
+- **Fonts:** Big Shoulders, a condensed signage face, for headings and the rate board; Instrument Sans with
+  tabular figures for everything else. Both are served from `assets/fonts`, so there are no requests to Google Fonts.
+- **Color:** banknote paper green and dark green ink for the page, with one dark rate board in the amber
+  of an airport exchange counter. Colors are CSS variables at the top of `site.css`, with a dark-mode set.
+- **The rate board:** the converted amount is shown as split-flap tiles that flip when the number
+  changes. The flip is switched off for visitors who ask for reduced motion.
+- **Accessibility:** text meets WCAG AA contrast in light and dark mode, controls are at least 44px tall,
+  the chart can be read with the arrow keys, and rises and falls are written out ("Up 0.27%"), not shown by color alone.
 
 ## Try it locally
 
