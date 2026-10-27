@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Currency Converter and Live Exchange Rates | RateBoard</title>
+  <meta name="description" content="Convert between 160 currencies with today's exchange rates, compare every rate against your base currency, and see how a pair has moved over the last year.">
+  <meta property="og:title" content="RateBoard – currency converter and exchange rates">
+  <meta property="og:description" content="Today's exchange rates for 160 currencies, with a converter and history charts.">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#18242e">
+  <link rel="icon" href="/assets/img/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@500;600&family=Big+Shoulders+Display:wght@800&family=Hanken+Grotesk:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="preconnect" href="https://open.er-api.com">
+  <script src="/assets/js/ads-config.js"></script>
+  <script src="/assets/js/ads.js" defer></script>
+  <script src="/assets/js/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#converter">Skip to converter</a>
+
+  <div class="ad-banner-wrap ad-banner-wrap--top">
+    <div class="ad ad--leaderboard" data-ad="top-banner"></div>
+  </div>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="logo" href="/">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="6" fill="#18242e"/><rect x="6" y="8" width="20" height="6" rx="1.5" fill="#f4b740"/><rect x="6" y="18" width="13" height="6" rx="1.5" fill="#f4b740" opacity=".55"/><path d="M22 18.5l4 2.5-4 2.5z" fill="#f4b740"/></svg>
+        RateBoard
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="/#converter" aria-current="page">Converter</a></li>
+          <li><a href="/#rates">All rates</a></li>
+          <li><a href="/#history">History</a></li>
+          <li><a href="/advertise.html">Advertise</a></li>
+          <li><a href="/about.html">About</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page">
+    <aside class="rail rail--left" aria-label="Advertisements">
+      <div class="rail__sticky">
+        <div class="ad ad--rail-left" data-ad="rail-left"></div>
+      </div>
+    </aside>
+
+    <main id="main">
+      <section class="hero" id="converter" aria-labelledby="hero-title">
+        <h1 id="hero-title">What your money is worth today</h1>
+        <p class="hero__lede">Convert between 160 currencies at today's mid-market rate, the midpoint between buy and sell prices that banks use between themselves.</p>
+
+        <div class="board">
+          <form class="board__form" id="converter-form">
+            <div class="board__field board__field--amount">
+              <label for="amount">Amount</label>
+              <input id="amount" name="amount" type="text" inputmode="decimal" autocomplete="off" value="1">
+            </div>
+            <div class="board__field">
+              <label for="from">From</label>
+              <select id="from" name="from"><option value="USD">USD – US Dollar</option></select>
+            </div>
+            <button class="swap" id="swap" type="button" aria-label="Swap currencies" title="Swap currencies">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4L3 8l4 4"/><path d="M3 8h14"/><path d="M17 20l4-4-4-4"/><path d="M21 16H7"/></svg>
+            </button>
+            <div class="board__field">
+              <label for="to">To</label>
+              <select id="to" name="to"><option value="EUR">EUR – Euro</option></select>
+            </div>
+          </form>
+
+          <div class="board__readout" aria-live="polite">
+            <p class="board__equation" id="eq">1.00 US Dollar =</p>
+            <p class="board__result"><span id="result-value">…</span><span class="unit" id="result-unit">EUR</span></p>
+            <p class="board__inverse"><span id="rate-fwd"></span><span id="rate-inv"></span></p>
+            <p class="board__updated" id="updated">Loading today's rates…</p>
+            <p class="board__status" id="status" role="alert"></p>
+          </div>
+
+          <p class="visually-hidden" id="majors-caption">1 USD buys</p>
+          <ul class="board__majors" id="majors" aria-labelledby="majors-caption"></ul>
+        </div>
+      </section>
+
+      <div class="ad-tiles">
+        <div class="ad ad--tile" data-ad="tile-1"></div>
+        <div class="ad ad--tile" data-ad="tile-2"></div>
+        <div class="ad ad--tile" data-ad="tile-3"></div>
+      </div>
+
+      <section class="section" id="history" aria-labelledby="chart-title">
+        <h2 id="chart-title">USD to EUR over the last month</h2>
+        <p class="section__intro">Daily reference rates published by the European Central Bank. Hover the line to read a single day.</p>
+        <div class="range-tabs" role="group" aria-label="Chart range">
+          <button type="button" data-range="30" aria-pressed="true">1 month</button>
+          <button type="button" data-range="90" aria-pressed="false">3 months</button>
+          <button type="button" data-range="365" aria-pressed="false">1 year</button>
+        </div>
+        <dl class="chart-stats" id="chart-stats" hidden>
+          <div><dt>Start</dt><dd id="stat-open"></dd></div>
+          <div><dt>Latest</dt><dd id="stat-close"></dd></div>
+          <div><dt>Change</dt><dd id="stat-change"></dd></div>
+          <div><dt>High</dt><dd id="stat-high"></dd></div>
+          <div><dt>Low</dt><dd id="stat-low"></dd></div>
+        </dl>
+        <div class="chart" id="chart"></div>
+      </section>
+
+      <div class="ad-banner-wrap">
+        <div class="ad ad--leaderboard" data-ad="in-content"></div>
+      </div>
+
+      <section class="section" id="rates" aria-labelledby="rates-title">
+        <h2 id="rates-title">Every rate against one currency</h2>
+        <p class="section__intro">Pick a base currency to see what one unit buys in every other currency, and what each one costs in yours.</p>
+        <div class="table-tools">
+          <div>
+            <label for="table-base">Base currency</label>
+            <select id="table-base"><option value="USD">USD – US Dollar</option></select>
+          </div>
+          <div>
+            <label for="table-search">Find a currency</label>
+            <input id="table-search" type="search" placeholder="Name or code, e.g. yen or JPY" autocomplete="off">
+          </div>
+          <p id="table-count" aria-live="polite" style="margin:0 0 10px;color:var(--ink-soft);font-size:.9rem"></p>
+        </div>
+        <div class="table-wrap">
+          <table class="rates">
+            <thead>
+              <tr>
+                <th scope="col">Code</th>
+                <th scope="col">Currency</th>
+                <th scope="col" class="num" id="th-rate">1 USD =</th>
+                <th scope="col" class="num" id="th-inverse">In USD</th>
+                <th scope="col"><span class="visually-hidden">Action</span></th>
+              </tr>
+            </thead>
+            <tbody id="rates-body"></tbody>
+          </table>
+        </div>
+        <p class="table-empty" id="table-empty" hidden>No currency matches that search. Try a three-letter code like CHF.</p>
+      </section>
+
+      <div class="ad-tiles">
+        <div class="ad ad--tile" data-ad="tile-4"></div>
+        <div class="ad ad--tile" data-ad="tile-5"></div>
+        <div class="ad ad--tile" data-ad="tile-6"></div>
+      </div>
+
+      <section class="section" aria-labelledby="popular-title">
+        <h2 id="popular-title">Popular conversions</h2>
+        <ul class="pair-links">
+          <li><a href="/?from=USD&amp;to=EUR">US Dollar to Euro</a></li>
+          <li><a href="/?from=EUR&amp;to=USD">Euro to US Dollar</a></li>
+          <li><a href="/?from=GBP&amp;to=USD">British Pound to US Dollar</a></li>
+          <li><a href="/?from=USD&amp;to=GBP">US Dollar to British Pound</a></li>
+          <li><a href="/?from=USD&amp;to=JPY">US Dollar to Japanese Yen</a></li>
+          <li><a href="/?from=USD&amp;to=INR">US Dollar to Indian Rupee</a></li>
+          <li><a href="/?from=USD&amp;to=PKR">US Dollar to Pakistani Rupee</a></li>
+          <li><a href="/?from=AED&amp;to=INR">UAE Dirham to Indian Rupee</a></li>
+          <li><a href="/?from=AED&amp;to=PKR">UAE Dirham to Pakistani Rupee</a></li>
+          <li><a href="/?from=SAR&amp;to=PKR">Saudi Riyal to Pakistani Rupee</a></li>
+          <li><a href="/?from=USD&amp;to=CAD">US Dollar to Canadian Dollar</a></li>
+          <li><a href="/?from=AUD&amp;to=USD">Australian Dollar to US Dollar</a></li>
+          <li><a href="/?from=EUR&amp;to=GBP">Euro to British Pound</a></li>
+          <li><a href="/?from=USD&amp;to=MXN">US Dollar to Mexican Peso</a></li>
+          <li><a href="/?from=USD&amp;to=CNY">US Dollar to Chinese Yuan</a></li>
+          <li><a href="/?from=GBP&amp;to=INR">British Pound to Indian Rupee</a></li>
+          <li><a href="/?from=USD&amp;to=PHP">US Dollar to Philippine Peso</a></li>
+          <li><a href="/?from=EUR&amp;to=CHF">Euro to Swiss Franc</a></li>
+        </ul>
+      </section>
+
+      <section class="section faq" aria-labelledby="faq-title">
+        <h2 id="faq-title">Questions about exchange rates</h2>
+        <details>
+          <summary>Why is my bank's rate different from this one?</summary>
+          <p>RateBoard shows the mid-market rate, the midpoint between what traders pay to buy and to sell a currency. Banks, card networks and exchange counters add a margin on top, so the rate you get is usually a little worse. Compare their rate with this one to see how much that margin costs you.</p>
+        </details>
+        <details>
+          <summary>How often do the rates change?</summary>
+          <p>Currency markets trade around the clock on weekdays, so rates move constantly. The converter uses rates refreshed once a day, which is right for planning a trip, an invoice or a transfer. For trading, use a live feed from your broker.</p>
+        </details>
+        <details>
+          <summary>Where does the history chart come from?</summary>
+          <p>The chart uses daily reference rates published by the European Central Bank on working days. It covers 31 major currencies. Weekends and holidays have no published rate, so the line skips them.</p>
+        </details>
+        <details>
+          <summary>Can I share a conversion?</summary>
+          <p>Yes. The page address updates as you change the amount or currencies, so copy it from your browser and anyone who opens it sees the same conversion with that day's rate.</p>
+        </details>
+      </section>
+    </main>
+
+    <aside class="rail rail--right" aria-label="Advertisements">
+      <div class="rail__sticky">
+        <div class="ad ad--rail-right" data-ad="rail-right"></div>
+        <div class="ad ad--rail-square" data-ad="rail-right-2"></div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="ad-banner-wrap">
+    <div class="ad ad--leaderboard" data-ad="footer-banner"></div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <ul>
+        <li><a href="/about.html">About</a></li>
+        <li><a href="/advertise.html">Advertise</a></li>
+        <li><a href="/privacy.html">Privacy and cookies</a></li>
+        <li><a href="/terms.html">Terms of use</a></li>
+      </ul>
+      <p>Current rates by <a href="https://www.exchangerate-api.com" rel="noopener">Exchange Rate API</a>. History from <a href="https://frankfurter.dev" rel="noopener">Frankfurter</a>, based on European Central Bank reference rates.</p>
+      <p>Rates are for information only and are not an offer to buy or sell currency. Check the rate with your provider before you send money.</p>
+      <p>© <span id="year">2026</span> RateBoard</p>
+    </div>
+  </footer>
+</body>
+</html>
